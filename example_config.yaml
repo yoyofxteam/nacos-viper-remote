@@ -1,0 +1,20 @@
+yoyogo:
+  application:
+    name: yoyogo_demo_dev
+  cloud:
+    discovery:
+      cache:
+        ttl: 30     # seconds
+      strategy: "round-robin"    # round-robin  , weight-time ,  random
+      type: "nacos"
+      metadata:
+        url: "120.53.133.30"
+        port: 80
+        namespace: "public"
+        group: "DEFAULT_GROUP"
+        configserver:
+          dataId: "config_dev"
+        auth:
+          enable: true
+          username: "root"
+          password: "1234"
