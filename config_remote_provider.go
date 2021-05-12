@@ -6,17 +6,19 @@ import (
 )
 
 type ViperRemoteProvider struct {
-	configSet string
+	configType string
+	configSet  string
 }
 
-func NewRemoteProvider() *ViperRemoteProvider {
+func NewRemoteProvider(configType string) *ViperRemoteProvider {
 	return &ViperRemoteProvider{
-		configSet: "yoyogo.cloud.discovery.metadata"}
+		configType: configType,
+		configSet:  "yoyogo.cloud.discovery.metadata"}
 }
 
 func (provider *ViperRemoteProvider) GetProvider(runtime_viper *viper.Viper) *viper.Viper {
 	var option *Option
-	err := runtime_viper.Sub("yoyogo.cloud.discovery.metadata").Unmarshal(&option)
+	err := runtime_viper.Sub(provider.configSet).Unmarshal(&option)
 	if err != nil {
 		panic(err)
 		return nil
@@ -24,7 +26,10 @@ func (provider *ViperRemoteProvider) GetProvider(runtime_viper *viper.Viper) *vi
 	SetOptions(option)
 	remote_viper := viper.New()
 	err = remote_viper.AddRemoteProvider("nacos", "localhost", "")
-	remote_viper.SetConfigType("yaml")
+	if provider.configType == "" {
+		provider.configType = "yaml"
+	}
+	remote_viper.SetConfigType(provider.configType)
 	err = remote_viper.ReadRemoteConfig()
 	if err == nil {
 		err = remote_viper.WatchRemoteConfigOnChannel()
