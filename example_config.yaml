@@ -8,7 +8,7 @@ yoyogo:
       strategy: "round-robin"    # round-robin  , weight-time ,  random
       type: "nacos"
       metadata:
-        url: "120.53.133.30"
+        url: "localhost"
         port: 80
         namespace: "public"
         group: "DEFAULT_GROUP"
