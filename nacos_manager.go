@@ -34,9 +34,15 @@ func NewNacosConfigManager(option *Option) (*nacosConfigManager, error) {
 		MaxAge:              3,
 		LogLevel:            "info",
 	}
+
 	if option.Auth != nil && option.Auth.Enable {
 		clientConfig.Username = option.Auth.User
 		clientConfig.Password = option.Auth.Password
+		clientConfig.Endpoint = option.Auth.Endpoint
+		clientConfig.RegionId = option.Auth.RegionId
+		clientConfig.AccessKey = option.Auth.AccessKey
+		clientConfig.SecretKey = option.Auth.SecretKey
+		clientConfig.OpenKMS = option.Auth.OpenKMS
 	}
 	client, err := clients.CreateConfigClient(map[string]interface{}{
 		"serverConfigs": serverConfigs,

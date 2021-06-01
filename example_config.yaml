@@ -18,3 +18,8 @@ yoyogo:
           enable: true
           username: "root"
           password: "1234"
+          endpoint: ""
+          regionId: ""
+          accessKey: ""
+          secretKey: ""
+          openKMS: false
