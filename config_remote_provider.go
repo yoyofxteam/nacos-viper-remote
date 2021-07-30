@@ -1,6 +1,7 @@
 package nacos_viper_remote
 
 import (
+	"bytes"
 	"fmt"
 	"github.com/spf13/viper"
 )
@@ -16,9 +17,9 @@ func NewRemoteProvider(configType string) *ViperRemoteProvider {
 		configSet:  "yoyogo.cloud.discovery.metadata"}
 }
 
-func (provider *ViperRemoteProvider) GetProvider(runtime_viper *viper.Viper) *viper.Viper {
+func (provider *ViperRemoteProvider) GetProvider(runtimeViper *viper.Viper) *viper.Viper {
 	var option *Option
-	err := runtime_viper.Sub(provider.configSet).Unmarshal(&option)
+	err := runtimeViper.Sub(provider.configSet).Unmarshal(&option)
 	if err != nil {
 		panic(err)
 		return nil
@@ -32,7 +33,7 @@ func (provider *ViperRemoteProvider) GetProvider(runtime_viper *viper.Viper) *vi
 	remote_viper.SetConfigType(provider.configType)
 	err = remote_viper.ReadRemoteConfig()
 	if err == nil {
-		err = remote_viper.WatchRemoteConfigOnChannel()
+		//err = remote_viper.WatchRemoteConfigOnChannel()
 		if err == nil {
 			fmt.Println("used remote viper")
 			return remote_viper
@@ -40,5 +41,22 @@ func (provider *ViperRemoteProvider) GetProvider(runtime_viper *viper.Viper) *vi
 	} else {
 		panic(err)
 	}
-	return runtime_viper
+	return runtimeViper
+}
+
+func (provider *ViperRemoteProvider) WatchRemoteConfigOnChannel(remoteViper *viper.Viper) <-chan bool {
+	updater := make(chan bool)
+
+	respChan, _ := viper.RemoteConfig.WatchChannel(DefaultRemoteProvider())
+	go func(rc <-chan *viper.RemoteResponse) {
+		for {
+			b := <-rc
+			reader := bytes.NewReader(b.Value)
+			_ = remoteViper.ReadConfig(reader)
+			// configuration on changed
+			updater <- true
+		}
+	}(respChan)
+
+	return updater
 }

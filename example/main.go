@@ -32,14 +32,21 @@ func main() {
 	remote_viper := viper.New()
 	err := remote_viper.AddRemoteProvider("nacos", "localhost", "")
 	remote_viper.SetConfigType("yaml")
-
 	err = remote_viper.ReadRemoteConfig()
+
 	if err == nil {
-		err = remote_viper.WatchRemoteConfigOnChannel()
-		if err == nil {
-			config_viper = remote_viper
-			fmt.Println("used remote viper")
-		}
+		config_viper = remote_viper
+		fmt.Println("used remote viper")
+		provider := remote.NewRemoteProvider("yaml")
+		respChan := provider.WatchRemoteConfigOnChannel(config_viper)
+
+		go func(rc <-chan bool) {
+			for {
+				<-rc
+				fmt.Printf("remote async: %s", config_viper.GetString("yoyogo.application.name"))
+			}
+		}(respChan)
+
 	}
 
 	appName := config_viper.GetString("yoyogo.application.name")
@@ -50,7 +57,7 @@ func main() {
 		for {
 			time.Sleep(time.Second * 30) // delay after each request
 			appName = config_viper.GetString("yoyogo.application.name")
-			fmt.Println(appName)
+			fmt.Println("sync:" + appName)
 		}
 	}()
 

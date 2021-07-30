@@ -7,17 +7,20 @@ import (
 	"io"
 )
 
-var nacosOptions = &Option{}
+//var nacosOptions = &Option{}
 
 func SetOptions(option *Option) {
-	nacosOptions = option
+	manager, _ := NewNacosConfigManager(option)
+	viper.SupportedRemoteProviders = []string{"nacos"}
+	viper.RemoteConfig = &remoteConfigProvider{ConfigManager: manager}
 }
 
 type remoteConfigProvider struct {
+	ConfigManager *nacosConfigManager
 }
 
 func (rc *remoteConfigProvider) Get(rp viper.RemoteProvider) (io.Reader, error) {
-	cmt, err := getConfigManager(rp)
+	cmt, err := rc.getConfigManager(rp)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +40,7 @@ func (rc *remoteConfigProvider) Watch(rp viper.RemoteProvider) (io.Reader, error
 }
 
 func (rc *remoteConfigProvider) WatchChannel(rp viper.RemoteProvider) (<-chan *viper.RemoteResponse, chan bool) {
-	cmt, err := getConfigManager(rp)
+	cmt, err := rc.getConfigManager(rp)
 	if err != nil {
 		return nil, nil
 	}
@@ -52,15 +55,10 @@ func (rc *remoteConfigProvider) WatchChannel(rp viper.RemoteProvider) (<-chan *v
 	return nil, nil
 }
 
-func getConfigManager(rp viper.RemoteProvider) (interface{}, error) {
+func (rc *remoteConfigProvider) getConfigManager(rp viper.RemoteProvider) (interface{}, error) {
 	if rp.Provider() == "nacos" {
-		return NewNacosConfigManager(nacosOptions)
+		return rc.ConfigManager, nil
 	} else {
 		return nil, errors.New("The Nacos configuration manager is not supported!")
 	}
-}
-
-func init() {
-	viper.SupportedRemoteProviders = []string{"nacos"}
-	viper.RemoteConfig = &remoteConfigProvider{}
 }
