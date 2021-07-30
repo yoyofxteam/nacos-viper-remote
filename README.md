@@ -3,7 +3,7 @@
 Golang configuration,use to Viper reading from remote Nacos config systems. Viper remote for Naocs.
 
 ```go
-runtime_viper := viper.New()
+config_viper := viper.New()
 
 remote.SetOptions(&remote.Option{
    Url:         "localhost",
@@ -14,13 +14,30 @@ remote.SetOptions(&remote.Option{
    Auth:        nil,
 })
 
+remote_viper := viper.New()
 err := remote_viper.AddRemoteProvider("nacos", "localhost", "")
 remote_viper.SetConfigType("yaml")
+err = remote_viper.ReadRemoteConfig()    //sync get remote configs to remote_viper instance memory . for example , remote_viper.GetString(key)
 
-_ = remote_viper.ReadRemoteConfig()             //sync get remote configs to remote_viper instance memory . for example , remote_viper.GetString(key)
-_ = remote_viper.WatchRemoteConfigOnChannel()   //async watch , auto refresh configs.
+if err == nil {
+    config_viper = remote_viper
+    fmt.Println("used remote viper")
+    provider := remote.NewRemoteProvider("yaml")
+    respChan := provider.WatchRemoteConfigOnChannel(config_viper)
 
-appName := remote_viper.GetString("key")   // sync get config by key
+    go func(rc <-chan bool) {
+        for {
+            <-rc
+            fmt.Printf("remote async: %s", config_viper.GetString("yoyogo.application.name"))
+        }
+    }(respChan)
+}
 
-fmt.Println(appName)
+go func() {
+    for {
+        time.Sleep(time.Second * 30) // delay after each request
+        appName = config_viper.GetString("yoyogo.application.name")
+        fmt.Println("sync:" + appName)
+    }
+}()
 ```
