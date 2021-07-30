@@ -35,7 +35,9 @@ func (provider *ViperRemoteProvider) GetProvider(runtimeViper *viper.Viper) *vip
 	if err == nil {
 		//err = remote_viper.WatchRemoteConfigOnChannel()
 		if err == nil {
-			fmt.Println("used remote viper")
+			fmt.Println("config center ..........")
+			fmt.Println("used remote viper by Nacos")
+			fmt.Printf("Nacos config: namespace: %s , group: %s", option.NamespaceId, option.GroupName)
 			return remote_viper
 		}
 	} else {
