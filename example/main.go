@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/spf13/viper"
-	remote "github.com/yoyofxteam/nacos-viper-remote"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/spf13/viper"
+	remote "github.com/yoyofxteam/nacos-viper-remote"
 )
 
 func main() {
@@ -67,7 +68,7 @@ func main() {
 func onExit() {
 	c := make(chan os.Signal)
 	signal.Notify(c, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM,
-		syscall.SIGQUIT, syscall.SIGUSR1, syscall.SIGUSR2)
+		syscall.SIGQUIT)
 
 	for s := range c {
 		switch s {
